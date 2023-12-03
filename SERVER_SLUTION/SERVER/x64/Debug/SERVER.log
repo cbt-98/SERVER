@@ -1,4 +1,2 @@
 ﻿  main.cpp
-E:\ServerProject\.git\SERVER_SLUTION\SERVER\main.cpp(64,65): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
-E:\ServerProject\.git\SERVER_SLUTION\SERVER\main.cpp(84,69): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
   SERVER.vcxproj -> E:\ServerProject\.git\SERVER_SLUTION\x64\Debug\SERVER.exe

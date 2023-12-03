@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
+#include "comdefine.h"
 
 using namespace std;
 
@@ -57,40 +58,46 @@ int main()
     SOCKET clientSock = accept(listenSock, (sockaddr*)(&clientAddr), &len);
     cout << "accept:ip:" << inet_ntoa(clientAddr.sin_addr) << endl;
 
-    vector<char> vcrBuf(256, 0);
-    vector<char> vcwBuf(256, 0);
     while (1)
     {
-        ret = recv(clientSock, vcrBuf.data(), vcrBuf.capacity() - 1, 0);
+        char* recvBuf[1024] = { 0 };
+        ret = recv(clientSock, (char *)recvBuf, sizeof(recvBuf), 0);
         if (ret < 0)
         {
             cout << "recv failed! Error code:" << WSAGetLastError() << endl;
         }
-        else
+
+        MsgHeader_S* recvHander = (MsgHeader_S*)recvBuf;
+        cout << "CMD:" << recvHander->cmd << endl;
+
+        // Receive resqust command
+        switch (recvHander->cmd)
         {
-            cout << "recv:" << vcrBuf.data() << endl;
+        case LOGIN:
+        {
+            MsgLogin_S * loginData = (MsgLogin_S*)recvBuf;
+            cout << "login user:" << loginData->user << " " << "pwd:" << loginData->pwd << endl;
+            ret = 0;
+            break;
+        }
+        case LOGOUT:
+        {
+            MsgLogout_S* logoutData = (MsgLogout_S*)recvBuf;
+            cout << "logout user:" << logoutData->user << endl;
+            ret = 0;
+            break;
+        }
+        default:
+        {
+            ret = -1;
+        }
         }
 
-        if (strcmp(vcrBuf.data(), "name") == 0)
-        {
+        // Return result
+        MsgResult_S RetData = {};
+        RetData.ret = ret;
+        ret = send(clientSock, (char *)&RetData, sizeof(RetData), 0);
         
-            strncpy_s(vcwBuf.data(), vcwBuf.capacity() - 1, "cbt", strlen("cbt") + 1);
-        }
-        else
-        {
-            strncpy_s(vcwBuf.data(), vcwBuf.capacity() - 1, "Copy that.", strlen("Copy that.") + 1);
-        }
-        
-        ret = send(clientSock, vcwBuf.data(), strlen(vcwBuf.data()) + 1, 0);
-        if (ret < 0)
-        {
-            cout << "Recover failed! Error code:" << WSAGetLastError() << endl;
-        }
-        else
-        {
-            cout << "Recover:" << vcwBuf.data() << endl;
-        }
-
         Sleep(1000);
     }
 

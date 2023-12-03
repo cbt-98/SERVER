@@ -2,6 +2,7 @@
 #include <WinSock2.h>
 #include <windows.h>
 #include <vector>
+#include "comdefine.h"
 
 using namespace std;
 
@@ -40,23 +41,56 @@ int main()
     vector<char> vcwBuf(256, 0);
     while (1)
     {
+        //Input resqust command
         cout << "Please enter the data to be sent:" << endl;
         cin >> vcwBuf.data();
-        cout << "send:" << vcwBuf.data() << endl;
-        ret = send(clientSock, vcwBuf.data(), strlen(vcwBuf.data()) + 1, 0);
-        if (ret < 0)
+        string stInput = vcwBuf.data();
+        if (stInput.compare("login") == 0)
         {
-            cout << "send failed! Error code:" << WSAGetLastError() << endl;
+            MsgLogin_S loginData = {};
+
+            cout << "User:";
+            cin.ignore();
+            cin.getline(loginData.user, 64);
+
+            cout << "Passward:";
+            cin.ignore();
+            cin.getline(loginData.pwd, 64);
+            ret = send(clientSock, (char *) & loginData, sizeof(loginData), 0);
+            if (ret < 0)
+            {
+                cout << "send failed! Error code:" << WSAGetLastError() << endl;
+            }
+        }
+        else if (stInput.compare("logout") == 0)
+        {
+            MsgLogout_S logoutData = {};
+
+            cout << "User:";
+            cin.ignore();
+            cin.getline(logoutData.user, 64);
+            ret = send(clientSock, (char*)&logoutData, sizeof(logoutData), 0);
+            if (ret < 0)
+            {
+                cout << "send failed! Error code:" << WSAGetLastError() << endl;
+            }
+        }
+        else
+        {
+            cout << "Unknow CMD!" << endl;
+            continue;
         }
 
-        ret = recv(clientSock, vcrBuf.data(), vcrBuf.capacity() - 1, 0);
+        //Get result
+        MsgResult_S retData = {};
+        ret = recv(clientSock, (char *)&retData, sizeof(retData), 0);
         if (ret < 0)
         {
             cout << "recv failed! Error code:" << WSAGetLastError() << endl;
         }
         else
         {
-            cout << "recv:" << vcrBuf.data() << endl;
+            cout << "result:" << retData.ret << endl;
         }
 
         Sleep(1000);
